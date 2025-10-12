@@ -1,7 +1,21 @@
 import React from "react";
+import Cards from "../Components/Cards";
+import Analytics from "../Assets/Analytics.png";
+import Contribution from "../Assets/Contribution.png";
+import ReportCrime from "../Assets/ReportCrime.png";
+import TrackUrPath from "../Assets/TrackUrPath.png";
 
 function Home() {
-  return <h1 className="text-3xl font-bold text-center mt-10">Home Page</h1>;
+  return (
+    <>
+      <div className="flex flex-wrap justify-center items-center gap-6 p-6 bg-gray-100 min-h-screen">
+        <Cards task="Track Your Path" img={TrackUrPath} />
+        <Cards task="Report a Crime" img={ReportCrime} />
+        <Cards task="View Analytics" img={Analytics} />
+        <Cards task="Your Contribution" img={Contribution} />
+      </div>
+    </>
+  );
 }
 
 export default Home;

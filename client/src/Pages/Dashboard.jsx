@@ -10,6 +10,10 @@ import Analytics from "../Assets/Analytics.png";
 import Contribution from "../Assets/Contribution.png"
 import ReportCrime from "../Assets/ReportCrime.png"
 import TrackUrPath from "../Assets/TrackUrPath.png"
+import Track from "./Track";
+import Analyse from "./Analyse";
+import Contribute from "./Contribute";
+import Report from "./Report";
 function Dashboard(){
 
     return (
@@ -20,6 +24,10 @@ function Dashboard(){
             <Route path="/about" element={<About />} />
             <Route path="/services" element={<Services />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/track" element ={<Track/>} />
+            <Route path="/analyse" element ={<Analyse/>} />
+            <Route path="/contribute" element ={<Contribute/>} />
+            <Route path="/report" element ={<Report/>} />
         </Routes>
         
         </>

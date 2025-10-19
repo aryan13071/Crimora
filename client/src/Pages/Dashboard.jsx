@@ -14,6 +14,7 @@ import Track from "./Track";
 import Analyse from "./Analyse";
 import Contribute from "./Contribute";
 import Report from "./Report";
+import MapPage from "./Map"
 function Dashboard(){
 
     return (
@@ -28,6 +29,7 @@ function Dashboard(){
             <Route path="/analyse" element ={<Analyse/>} />
             <Route path="/contribute" element ={<Contribute/>} />
             <Route path="/report" element ={<Report/>} />
+            <Route path="/map" element ={<MapPage/>} />
         </Routes>
         
         </>

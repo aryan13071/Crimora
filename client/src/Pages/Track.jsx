@@ -1,92 +1,76 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-// change 1 -> Environment variable name in React must start with REACT_APP_
 const openCageApiKey = process.env.REACT_APP_OPENCAGE_API_KEY;
-console.log("What is the api key : ",openCageApiKey);
 
 const Track = () => {
-  // change 2 -> Added state for source and destination selection
-  const [latitude, setLatitude] = useState(0);
-  const [longitude, setLongitude] = useState(0);
   const [src, setSrc] = useState("");
   const [dest, setDest] = useState("");
+  const [srcCoords, setSrcCoords] = useState(null);
+  const navigate = useNavigate();
 
   const ukCities = [
-    "London",
-    "Manchester",
-    "Birmingham",
-    "Leeds",
-    "Liverpool",
-    "Sheffield",
-    "Bristol",
-    "Nottingham",
-    "Leicester",
-    "Newcastle upon Tyne",
-    "Sunderland",
-    "Stoke-on-Trent",
-    "Derby",
-    "Southampton",
-    "Portsmouth",
-    "Reading",
-    "Brighton",
-    "Milton Keynes",
-    "Northampton",
-    "Cambridge",
-    "Oxford",
-    "York",
-    "Hull",
-    "Coventry",
-    "Bradford",
-    "Luton",
-    "Wolverhampton",
-    "Preston",
-    "Blackpool",
-    "Middlesbrough",
-    "Chester",
-    "Exeter",
-    "Plymouth",
-    "Norwich",
-    "Peterborough",
-    "Swansea",
-    "Cardiff",
-    "Newport",
-    "Bath",
-    "Cheltenham",
+    "London", "Manchester", "Birmingham", "Leeds", "Liverpool",
+    "Sheffield", "Bristol", "Nottingham", "Leicester", "Newcastle upon Tyne",
+    "Cardiff", "Swansea", "Oxford", "Cambridge"
   ];
 
-  // change 3 -> Corrected async function syntax
-  const Geocoding = async () => {
-    if (!src || !dest) {
+  // Fetch user’s current location
+  const useMyLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported by your browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coords = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setSrc("My Current Location");
+        setSrcCoords(coords);
+      },
+      (error) => {
+        alert("Unable to fetch your location.");
+        console.error(error);
+      }
+    );
+  };
+
+  const handleTrack = async () => {
+    if ((!src && !srcCoords) || !dest) {
       alert("Please select both source and destination.");
       return;
     }
-    console.log(src);
-    console.log(dest);
 
     try {
-      // change 4 -> Corrected template literals and await usage
-      const responseForSrc = await fetch(
-        `https://api.opencagedata.com/geocode/v1/json?q=${src}&key=${openCageApiKey}`
-        // `https://api.opencagedata.com/geocode/v1/json?q=Frauenplan+1%2C+99423+Weimar%2C+Germany&key=${openCageApiKey}`
-      );
-      const srcData = await responseForSrc.json();
+      let srcC = srcCoords;
 
-      const responseForDest = await fetch(
+      // Only fetch if not using current location
+      if (!srcCoords) {
+        const res1 = await fetch(
+          `https://api.opencagedata.com/geocode/v1/json?q=${src}&key=${openCageApiKey}`
+        );
+        const data1 = await res1.json();
+        srcC = data1.results[0]?.geometry;
+      }
+
+      const res2 = await fetch(
         `https://api.opencagedata.com/geocode/v1/json?q=${dest}&key=${openCageApiKey}`
       );
-      const destData = await responseForDest.json();
+      const data2 = await res2.json();
+      const destC = data2.results[0]?.geometry;
 
-      // change 5 -> Extract and set latitude & longitude properly
-      const srcCoords = srcData.results[0]?.geometry;
-      const destCoords = destData.results[0]?.geometry;
+      if (!srcC || !destC) {
+        alert("Couldn't get coordinates for one of the locations.");
+        return;
+      }
 
-      console.log("Source:", srcCoords);
-      console.log("Destination:", destCoords);
-
-      setLatitude(srcCoords?.lat || 0);
-      setLongitude(srcCoords?.lng || 0);
-    } catch (error) {
-      console.error("Error fetching geocoding data:", error);
+      navigate("/map", { state: { srcCoords: srcC, destCoords: destC } });
+    } catch (err) {
+      console.error(err);
+      alert("Error fetching location data.");
     }
   };
 
@@ -97,56 +81,58 @@ const Track = () => {
           Track Your Path
         </h2>
 
-        <div className="flex flex-col gap-5">
-          {/* Source */}
-          <div className="flex flex-col">
-            <label htmlFor="source" className="text-gray-700 font-medium mb-2">
-              Enter the Source:
-            </label>
-            <select
-              id="source"
-              value={src}
-              onChange={(e) => setSrc(e.target.value)} // change 6 -> added onChange
-              className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-            >
-              <option value="">Select Source</option>
-              {ukCities.map((city, idx) => (
-                <option key={idx} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Source Input */}
+        <div className="flex flex-col mb-4">
+          <label htmlFor="source" className="text-gray-700 font-medium mb-2">
+            Enter the Source:
+          </label>
+          <select
+            id="source"
+            value={src}
+            onChange={(e) => setSrc(e.target.value)}
+            className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+          >
+            <option value="">Select Source</option>
+            {ukCities.map((city, idx) => (
+              <option key={idx} value={city}>
+                {city}
+              </option>
+            ))}
+          </select>
 
-          {/* Destination */}
-          <div className="flex flex-col">
-            <label
-              htmlFor="destination"
-              className="text-gray-700 font-medium mb-2"
-            >
-              Enter the Destination:
-            </label>
-            <select
-              id="destination"
-              value={dest}
-              onChange={(e) => setDest(e.target.value)} // change 7 -> added onChange
-              className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-            >
-              <option value="">Select Destination</option>
-              {ukCities.map((city, idx) => (
-                <option key={idx} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Use My Location button */}
+          <button
+            onClick={useMyLocation}
+            className="mt-3 bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600 transition-transform transform hover:scale-105"
+          >
+            Use My Current Location
+          </button>
+        </div>
+
+        {/* Destination Input */}
+        <div className="flex flex-col mb-6">
+          <label htmlFor="destination" className="text-gray-700 font-medium mb-2">
+            Enter the Destination:
+          </label>
+          <select
+            id="destination"
+            value={dest}
+            onChange={(e) => setDest(e.target.value)}
+            className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+          >
+            <option value="">Select Destination</option>
+            {ukCities.map((city, idx) => (
+              <option key={idx} value={city}>
+                {city}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Track Button */}
-        <div className="flex justify-center mt-8">
-          {/* change 8 -> fixed onClick syntax to call function properly */}
+        <div className="flex justify-center">
           <button
-            onClick={Geocoding}
+            onClick={handleTrack}
             className="bg-indigo-600 text-white font-semibold px-6 py-2 rounded-full shadow-md hover:bg-indigo-700 transition-transform transform hover:scale-105"
           >
             Track

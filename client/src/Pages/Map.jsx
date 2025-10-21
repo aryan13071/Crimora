@@ -34,6 +34,22 @@ const MapPage = () => {
       return;
     }
 
+    // Generating mid point btw the paths 
+
+    function generateIntermediatePoints(src, dest, count) {
+      const points = [];
+      for (let i = 1; i <= count; i++) {
+        const lat = src.lat + (dest.lat - src.lat) * (i / (count + 1));
+        const lng = src.lng + (dest.lng - src.lng) * (i / (count + 1));
+        points.push({ lat, lng });
+      }
+      return points;
+    }
+
+    const midPoints = generateIntermediatePoints(srcCoords, destCoords, 30);
+    console.log("Intermediate points:", midPoints);
+
+
     // Initialize map if not already
     if (!mapRef.current) {
       mapRef.current = L.map("map", {

@@ -36,6 +36,7 @@ const MapPage = () => {
 
     // Generating mid point btw the paths 
 
+    // Generate intermediate points between source and destination
     function generateIntermediatePoints(src, dest, count) {
       const points = [];
       for (let i = 1; i <= count; i++) {
@@ -48,6 +49,35 @@ const MapPage = () => {
 
     const midPoints = generateIntermediatePoints(srcCoords, destCoords, 30);
     console.log("Intermediate points:", midPoints);
+
+    // Fetch crimes for each midpoint
+    async function fetchCrimeData() {
+      const dateStr = "2024-01"; 
+
+
+      const allCrimes = await Promise.all(
+        midPoints.map(async (p) => {
+          try {
+            const res = await fetch(
+              `http://localhost:5000/api/crime?date=${dateStr}&lat=${p.lat}&lng=${p.lng}`
+            );
+            if (!res.ok) {
+              console.error(`Backend returned error for ${p.lat},${p.lng}`);
+              return [];
+            }
+            const data = await res.json();
+            return data || [];
+          } catch (err) {
+            console.error(`Fetch failed for ${p.lat},${p.lng}:`, err);
+            return [];
+          }
+        })
+      );
+
+      console.log("All crime data:", allCrimes);
+    }
+
+    fetchCrimeData();
 
 
     // Initialize map if not already

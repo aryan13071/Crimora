@@ -1,0 +1,26 @@
+{
+  "name": "crimora",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && node index.js",
+    "client": "cd client && npm start",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aryan13071/Crimora.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aryan13071/Crimora/issues"
+  },
+  "homepage": "https://github.com/aryan13071/Crimora#readme",
+  "description": "",
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

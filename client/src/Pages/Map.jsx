@@ -4,14 +4,15 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
+
 import srcMarker from "../Assets/Source.png";
 import destMarker from "../Assets/Destination.png";
-import AntiSocialBehavoiur from "../Assets/AntiSocialBehavoiur.png"
-import Drugs from "../Assets/Drugs.png"
-import ViolentCrime from "../Assets/ViolentCrime.png"
-import Burglary from "../Assets/Theft.png"
-import Theft from "../Assets/Theft.png"
-import All from "../Assets/All.png"
+import AntiSocialBehaviour from "../Assets/AntiSocialBehavoiur.png";
+import Drugs from "../Assets/Drugs.png";
+import ViolentCrime from "../Assets/ViolentCrime.png";
+import Burglary from "../Assets/Theft.png";
+import Theft from "../Assets/Theft.png";
+import All from "../Assets/All.png";
 
 const MapPage = () => {
   const location = useLocation();
@@ -24,28 +25,19 @@ const MapPage = () => {
   // -----------------------------
   // Custom Source/Destination icons
   // -----------------------------
-  const srcIcon = L.icon({
-    iconUrl: srcMarker,
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-  });
-
-  const destIcon = L.icon({
-    iconUrl: destMarker,
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-  });
+  const srcIcon = L.icon({ iconUrl: srcMarker, iconSize: [40, 40], iconAnchor: [20, 40] });
+  const destIcon = L.icon({ iconUrl: destMarker, iconSize: [40, 40], iconAnchor: [20, 40] });
 
   // -----------------------------
-  // Fallback crime icons (always on top)
+  // Crime icons (fixed size)
   // -----------------------------
   const crimeIcons = {
-    "anti-social-behaviour": L.icon({ iconUrl: AntiSocialBehavoiur, iconSize: [30, 30], iconAnchor: [15, 30] }),
-    "burglary": L.icon({ iconUrl: Burglary , iconSize: [30, 30], iconAnchor: [15, 30] }),
-    "violent-crime": L.icon({ iconUrl: ViolentCrime, iconSize: [30, 30], iconAnchor: [15, 30] }),
-    "drugs": L.icon({ iconUrl: Drugs, iconSize: [30, 30], iconAnchor: [15, 30] }),
-    "theft": L.icon({ iconUrl: Theft, iconSize: [30, 30], iconAnchor: [15, 30] }),
-    "default": L.icon({ iconUrl: All, iconSize: [30, 30], iconAnchor: [15, 30] }),
+    "anti-social-behaviour": L.icon({ iconUrl: AntiSocialBehaviour, iconSize: [50, 50], iconAnchor: [25, 50] }),
+    "drugs": L.icon({ iconUrl: Drugs, iconSize: [50, 50], iconAnchor: [25, 50] }),
+    "violent-crime": L.icon({ iconUrl: ViolentCrime, iconSize: [50, 50], iconAnchor: [25, 50] }),
+    "burglary": L.icon({ iconUrl: Burglary, iconSize: [50, 50], iconAnchor: [25, 50] }),
+    "theft": L.icon({ iconUrl: Theft, iconSize: [50, 50], iconAnchor: [25, 50] }),
+    "default": L.icon({ iconUrl: All, iconSize: [50, 50], iconAnchor: [25, 50] }),
   };
 
   useEffect(() => {
@@ -66,7 +58,6 @@ const MapPage = () => {
       }).addTo(mapRef.current);
     }
 
-    // Remove previous routing
     if (routingRef.current) mapRef.current.removeControl(routingRef.current);
 
     // -----------------------------
@@ -85,7 +76,6 @@ const MapPage = () => {
       draggableWaypoints: false,
     }).addTo(mapRef.current);
 
-    // Fit bounds
     const bounds = L.latLngBounds([srcCoords.lat, srcCoords.lng], [destCoords.lat, destCoords.lng]);
     mapRef.current.fitBounds(bounds, { padding: [50, 50] });
 
@@ -106,11 +96,7 @@ const MapPage = () => {
     // -----------------------------
     // Draw crime shapes and icons
     // -----------------------------
-    const getScaleFactor = (zoom) => {
-      if (zoom >= 15) return 2;
-      if (zoom >= 13) return 1.5;
-      return 1;
-    };
+    const getScaleFactor = (zoom) => (zoom >= 15 ? 2 : zoom >= 13 ? 1.5 : 1);
 
     const drawCrime = (type, lat, lng) => {
       const zoom = mapRef.current.getZoom();
@@ -153,11 +139,13 @@ const MapPage = () => {
           shape = L.marker([lat, lng], { icon: crimeIcons[type] || crimeIcons["default"] }).addTo(mapRef.current);
       }
 
-      // Add icon marker on top
+      // -----------------------------
+      // Fixed-size icon (does NOT scale)
+      // -----------------------------
       const iconMarker = L.marker([lat, lng], { icon: crimeIcons[type] || crimeIcons["default"] }).addTo(mapRef.current);
       iconMarker.bindPopup(`<b>${type.replace(/-/g, " ")}</b>`);
 
-      // Keep reference to layers for zoom updates
+      // Keep reference
       crimeLayersRef.current.push({ type, lat, lng, shape, iconMarker });
     };
 
@@ -186,15 +174,16 @@ const MapPage = () => {
     fetchCrimeData();
 
     // -----------------------------
-    // Update crime shapes on zoom
+    // Update shapes on zoom (icons stay intact)
     // -----------------------------
     mapRef.current.on("zoomend", () => {
-      crimeLayersRef.current.forEach((item) => {
+      const currentLayers = [...crimeLayersRef.current];
+      crimeLayersRef.current = [];
+      currentLayers.forEach((item) => {
         mapRef.current.removeLayer(item.shape);
-        mapRef.current.removeLayer(item.iconMarker);
+        mapRef.current.removeLayer(item.iconMarker); // remove old icon
         drawCrime(item.type, item.lat, item.lng);
       });
-      crimeLayersRef.current = [];
     });
 
     // Cleanup

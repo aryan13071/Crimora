@@ -6,12 +6,19 @@ import "leaflet-routing-machine";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 import srcMarker from "../Assets/Source.png";
 import destMarker from "../Assets/Destination.png";
+import AntiSocialBehavoiur from "../Assets/AntiSocialBehavoiur.png"
+import Drugs from "../Assets/Drugs.png"
+import ViolentCrime from "../Assets/ViolentCrime.png"
+import Burglary from "../Assets/Theft.png"
+import Theft from "../Assets/Theft.png"
+import All from "../Assets/All.png"
 
 const MapPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const mapRef = useRef(null);
   const routingRef = useRef(null);
+  const crimeLayersRef = useRef([]);
   const { srcCoords, destCoords } = location.state || {};
 
   // -----------------------------
@@ -30,15 +37,15 @@ const MapPage = () => {
   });
 
   // -----------------------------
-  // Fallback crime icons (if needed)
+  // Fallback crime icons (always on top)
   // -----------------------------
   const crimeIcons = {
-    "anti-social-behaviour": L.icon({ iconUrl: "path/to/antisocial.png", iconSize: [25, 25], iconAnchor: [12, 25] }),
-    "burglary": L.icon({ iconUrl: "path/to/burglary.png", iconSize: [25, 25], iconAnchor: [12, 25] }),
-    "violent-crime": L.icon({ iconUrl: "path/to/violent.png", iconSize: [25, 25], iconAnchor: [12, 25] }),
-    "drugs": L.icon({ iconUrl: "path/to/drugs.png", iconSize: [25, 25], iconAnchor: [12, 25] }),
-    "theft": L.icon({ iconUrl: "path/to/theft.png", iconSize: [25, 25], iconAnchor: [12, 25] }),
-    "default": L.icon({ iconUrl: "path/to/default.png", iconSize: [25, 25], iconAnchor: [12, 25] }),
+    "anti-social-behaviour": L.icon({ iconUrl: AntiSocialBehavoiur, iconSize: [30, 30], iconAnchor: [15, 30] }),
+    "burglary": L.icon({ iconUrl: Burglary , iconSize: [30, 30], iconAnchor: [15, 30] }),
+    "violent-crime": L.icon({ iconUrl: ViolentCrime, iconSize: [30, 30], iconAnchor: [15, 30] }),
+    "drugs": L.icon({ iconUrl: Drugs, iconSize: [30, 30], iconAnchor: [15, 30] }),
+    "theft": L.icon({ iconUrl: Theft, iconSize: [30, 30], iconAnchor: [15, 30] }),
+    "default": L.icon({ iconUrl: All, iconSize: [30, 30], iconAnchor: [15, 30] }),
   };
 
   useEffect(() => {
@@ -49,7 +56,7 @@ const MapPage = () => {
     }
 
     // -----------------------------
-    // Initialize map only once
+    // Initialize map
     // -----------------------------
     if (!mapRef.current) {
       mapRef.current = L.map("map", { zoomControl: true });
@@ -59,11 +66,11 @@ const MapPage = () => {
       }).addTo(mapRef.current);
     }
 
-    // Remove previous routing control if exists
+    // Remove previous routing
     if (routingRef.current) mapRef.current.removeControl(routingRef.current);
 
     // -----------------------------
-    // Add routing from source → destination
+    // Routing control
     // -----------------------------
     routingRef.current = L.Routing.control({
       waypoints: [L.latLng(srcCoords.lat, srcCoords.lng), L.latLng(destCoords.lat, destCoords.lng)],
@@ -78,12 +85,12 @@ const MapPage = () => {
       draggableWaypoints: false,
     }).addTo(mapRef.current);
 
-    // Fit map bounds to show both points
+    // Fit bounds
     const bounds = L.latLngBounds([srcCoords.lat, srcCoords.lng], [destCoords.lat, destCoords.lng]);
     mapRef.current.fitBounds(bounds, { padding: [50, 50] });
 
     // -----------------------------
-    // Generate intermediate points along route
+    // Generate intermediate points
     // -----------------------------
     const generateIntermediatePoints = (src, dest, count) => {
       const points = [];
@@ -97,11 +104,65 @@ const MapPage = () => {
     const midPoints = generateIntermediatePoints(srcCoords, destCoords, 30);
 
     // -----------------------------
-    // Fetch crime data for midpoints
+    // Draw crime shapes and icons
     // -----------------------------
+    const getScaleFactor = (zoom) => {
+      if (zoom >= 15) return 2;
+      if (zoom >= 13) return 1.5;
+      return 1;
+    };
+
+    const drawCrime = (type, lat, lng) => {
+      const zoom = mapRef.current.getZoom();
+      const scale = getScaleFactor(zoom);
+
+      const colors = {
+        "drugs": { color: "#8B0000", fillColor: "#B22222" },
+        "burglary": { color: "#006400", fillColor: "#228B22" },
+        "theft": { color: "#00008B", fillColor: "#0000CD" },
+        "violent-crime": { color: "#4B0082", fillColor: "#6A5ACD" },
+        "anti-social-behaviour": { color: "#FF8C00", fillColor: "#FF7F50" },
+      };
+
+      let shape;
+      switch (type) {
+        case "drugs":
+          shape = L.circle([lat, lng], { ...colors[type], fillOpacity: 0.5, radius: 2000 * scale }).addTo(mapRef.current);
+          break;
+        case "burglary":
+          shape = L.polygon([
+            [lat + 0.018 * scale, lng],
+            [lat - 0.009 * scale, lng - 0.018 * scale],
+            [lat - 0.009 * scale, lng + 0.018 * scale],
+          ], { ...colors[type], fillOpacity: 0.6 }).addTo(mapRef.current);
+          break;
+        case "theft":
+          shape = L.circleMarker([lat, lng], { radius: 40 * scale, ...colors[type], fillOpacity: 0.7 }).addTo(mapRef.current);
+          break;
+        case "violent-crime":
+          shape = L.rectangle([[lat + 0.009 * scale, lng - 0.009 * scale], [lat - 0.009 * scale, lng + 0.009 * scale]], { ...colors[type], fillOpacity: 0.5 }).addTo(mapRef.current);
+          break;
+        case "anti-social-behaviour":
+          shape = L.polygon([
+            [lat + 0.018 * scale, lng],
+            [lat - 0.009 * scale, lng - 0.018 * scale],
+            [lat - 0.009 * scale, lng + 0.018 * scale],
+          ], { ...colors[type], fillOpacity: 0.6 }).addTo(mapRef.current);
+          break;
+        default:
+          shape = L.marker([lat, lng], { icon: crimeIcons[type] || crimeIcons["default"] }).addTo(mapRef.current);
+      }
+
+      // Add icon marker on top
+      const iconMarker = L.marker([lat, lng], { icon: crimeIcons[type] || crimeIcons["default"] }).addTo(mapRef.current);
+      iconMarker.bindPopup(`<b>${type.replace(/-/g, " ")}</b>`);
+
+      // Keep reference to layers for zoom updates
+      crimeLayersRef.current.push({ type, lat, lng, shape, iconMarker });
+    };
+
     const fetchCrimeData = async () => {
       const dateStr = "2024-01";
-
       const allCrimes = await Promise.all(
         midPoints.map(async (p) => {
           try {
@@ -115,62 +176,28 @@ const MapPage = () => {
         })
       );
 
-      // -----------------------------
-      // Place shapes on the map
-      // -----------------------------
       allCrimes.forEach((crimesAtPoint, index) => {
         if (crimesAtPoint.length === 0) return;
-
         const crime = crimesAtPoint[0];
-        const type = crime.category || "default";
-        const lat = midPoints[index].lat;
-        const lng = midPoints[index].lng;
-
-        // Crime shapes scaled for ~2 km
-        const crimeShapes = {
-          // Drugs → big red circle
-          "drugs": () =>
-            L.circle([lat, lng], { color: "red", fillColor: "#f03", fillOpacity: 0.5, radius: 2000 }).addTo(mapRef.current),
-
-          // Burglary → triangle polygon
-          "burglary": () =>
-            L.polygon([
-              [lat + 0.018, lng],
-              [lat - 0.009, lng - 0.018],
-              [lat - 0.009, lng + 0.018],
-            ], { color: "green", fillColor: "#90ee90", fillOpacity: 0.6 }).addTo(mapRef.current),
-
-          // Theft → big circle marker
-          "theft": () =>
-            L.circleMarker([lat, lng], { radius: 40, color: "blue", fillColor: "#3399ff", fillOpacity: 0.7 }).addTo(mapRef.current),
-
-          // Violent crime → rectangle
-          "violent-crime": () =>
-            L.rectangle([[lat + 0.009, lng - 0.009], [lat - 0.009, lng + 0.009]], { color: "purple", fillColor: "#b19cd9", fillOpacity: 0.5 }).addTo(mapRef.current),
-
-          // Anti-social behaviour → triangle
-          "anti-social-behaviour": () =>
-            L.polygon([
-              [lat + 0.018, lng],
-              [lat - 0.009, lng - 0.018],
-              [lat - 0.009, lng + 0.018],
-            ], { color: "orange", fillColor: "#ffa500", fillOpacity: 0.6 }).addTo(mapRef.current),
-        };
-
-        // Add shape to map
-        let shapeMarker = crimeShapes[type]?.();
-        if (!shapeMarker) {
-          shapeMarker = L.marker([lat, lng], { icon: crimeIcons[type] || crimeIcons["default"] }).addTo(mapRef.current);
-        }
-
-        // Bind popup
-        shapeMarker.bindPopup(`<b>${type.replace(/-/g, " ")}</b><br>${crime.location?.street?.name || ""}`);
+        drawCrime(crime.category || "default", midPoints[index].lat, midPoints[index].lng);
       });
     };
 
     fetchCrimeData();
 
-    // Cleanup on unmount
+    // -----------------------------
+    // Update crime shapes on zoom
+    // -----------------------------
+    mapRef.current.on("zoomend", () => {
+      crimeLayersRef.current.forEach((item) => {
+        mapRef.current.removeLayer(item.shape);
+        mapRef.current.removeLayer(item.iconMarker);
+        drawCrime(item.type, item.lat, item.lng);
+      });
+      crimeLayersRef.current = [];
+    });
+
+    // Cleanup
     return () => {
       if (routingRef.current) mapRef.current.removeControl(routingRef.current);
       if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }

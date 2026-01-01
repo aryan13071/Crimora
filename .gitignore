@@ -5,6 +5,7 @@ server/node_modules/
 
 # Env
 .env
+.vscode/
 
 # Logs
 *.log

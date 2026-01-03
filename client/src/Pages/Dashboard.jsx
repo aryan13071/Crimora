@@ -15,6 +15,8 @@ import Analyse from "./Analyse";
 import Contribute from "./Contribute";
 import Report from "./Report";
 import MapPage from "./Map"
+import SignUp from "./SignUp";
+import LogIn from "./LogIn"
 function Dashboard(){
 
     return (
@@ -30,6 +32,8 @@ function Dashboard(){
             <Route path="/contribute" element ={<Contribute/>} />
             <Route path="/report" element ={<Report/>} />
             <Route path="/map" element ={<MapPage/>} />
+            <Route path="/signUp" element={<SignUp/>}/>
+            <Route path="/logIn" element={<LogIn/>}/>
         </Routes>
         
         </>

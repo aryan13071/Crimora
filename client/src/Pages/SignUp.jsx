@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {Login} from "./LogIn.jsx"
 import { useNavigate } from "react-router-dom";
-
+//import { adaptEventHandlers } from "recharts/types/util/types";
 
 function SignUp() {
   const navigate = useNavigate();
@@ -11,18 +10,15 @@ function SignUp() {
   const [password, setPassword] = useState("");
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Email validation
     if (!emailRegex.test(email)) {
-      toast.error("❌ Invalid email address", {
-        position: "top-left",
-      });
+      toast.error("❌ Invalid email address", { position: "top-left" });
       return;
     }
 
@@ -35,22 +31,42 @@ function SignUp() {
       return;
     }
 
-    // Success
-    toast.success("✅ Account created successfully!", {
-      position: "top-left",
-    });
+    // 🔴 ADDED: API call to backend
+    try {
 
-    console.log("Email:", email);
-    console.log("Password:", password);
+      console.log("it has arrived the sign up for calling ");
+      const res = await fetch("http://localhost:5000/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    // SEE --- !!! ---    :::::   -----
-    // Yaha par i have to make a api call to backend for Post call and update 
-    // DB with these credentials 
+      const data = await res.json();
+      
+      console.log(`data after the api from the backend  ${data} `);
 
-    setTimeout(() => {
-      navigate("/logIn");
-    }, 1500);
 
+      if (!res.ok) {
+        toast.error(data.msg || "Signup failed", { position: "top-left" });
+        return;
+      }
+
+      toast.success("✅ Account created successfully!", {
+        position: "top-left",
+      });
+
+      // 🔴 ADDED: optional token store
+      localStorage.setItem("token", data.token);
+
+      setTimeout(() => {
+        navigate("/logIn");
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      toast.error("Server error", { position: "top-left" });
+    }
   };
 
   return (

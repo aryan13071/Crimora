@@ -1,22 +1,46 @@
 import React, { useState } from "react";
-import {Link} from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("email is : ", email );
-    console.log("password is  : ", password );
 
-    // !!!!! :::: --> imp add google sign also via JWT 
+    // 🔴 ADDED: API call to backend
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    // now pass this to the backend and then handle the response as per the need 
-    // check whether the credential are correct or not then refer to the home 
-    // 
+      const data = await res.json();
 
+      if (!res.ok) {
+        alert(data.msg || "Login failed");
+        return;
+      }
+
+      // 🔴 ADDED: store JWT
+      localStorage.setItem("token", data.token);
+
+      // 🔴 ADDED: redirect after successful login
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
+  };
+
+  // 🔴 ADDED: Google login redirect
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:5000/auth/google";
   };
 
   return (
@@ -66,12 +90,20 @@ function Login() {
           </button>
         </form>
 
+        {/* 🔴 ADDED: Google Sign In */}
+        <button
+          onClick={handleGoogleLogin}
+          className="w-full mt-4 border py-2 rounded-lg font-semibold hover:bg-gray-100 transition"
+        >
+          Sign in with Google
+        </button>
+
         <p className="text-sm text-center text-gray-500 mt-6">
           Don’t have an account?{" "}
           <Link
             to="/signUp"
             className="text-blue-600 hover:underline font-medium"
-            >
+          >
             Sign up
           </Link>
         </p>

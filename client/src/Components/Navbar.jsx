@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
-import { Link } from "react-router-dom";
+import React, { useState  } from 'react';
+import { Link , useNavigate } from "react-router-dom";
+
+// yaha par sign in button pe click karne par login call karna hoga remianing 
 
 function Navbar() {
+  const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const defaultProfile = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
-  const HandleSignIn = () => setIsLoggedIn(true);
+  const HandleSignIn = () =>{
+     navigate("/login");
+     setIsLoggedIn(true);   
+  }
   const HandleLogout = () => setIsLoggedIn(false);
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
 

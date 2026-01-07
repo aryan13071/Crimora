@@ -12,6 +12,8 @@ import passport from "passport";                 // 🔴 ADDED
 import connectDB from "./config/db.js";           // 🔴 ADDED
 import authRoutes from "./routes/authRoutes.js";  // 🔴 ADDED
 import "./config/passport.js";  // 🔴 ADDED (Google OAuth)
+import crimeRoutes from "./routes/crimeRoutes.js";
+
 
 
 
@@ -27,6 +29,10 @@ connectDB();
 
 // 🔴 ADDED: Body parser
 app.use(express.json());
+
+
+
+
 
 console.log(process.env.MONGO_URI);
 
@@ -48,6 +54,8 @@ app.use(
 // 🔴 ADDED: Passport init
 app.use(passport.initialize());
 
+
+
 // Base route
 app.get("/", (req, res) => {
   res.send("✅ Crimora backend is running!");
@@ -55,6 +63,8 @@ app.get("/", (req, res) => {
 
 // ===================== AUTH ROUTES ===================== // 🔴 ADDED
 app.use("/api/auth", authRoutes);
+app.use("/api/crime", crimeRoutes);
+
 
 // 🔴 ADDED: Google OAuth start
 app.get(

@@ -22,22 +22,58 @@ const MapPage = () => {
   const crimeLayersRef = useRef([]);
   const { srcCoords, destCoords } = location.state || {};
 
+
+  // LOOK ---> THODA ZOOM pe work karna icon and all ke 
+
   // -----------------------------
   // Custom Source/Destination icons
   // -----------------------------
-  const srcIcon = L.icon({ iconUrl: srcMarker, iconSize: [40, 40], iconAnchor: [20, 40] });
-  const destIcon = L.icon({ iconUrl: destMarker, iconSize: [40, 40], iconAnchor: [20, 40] });
+  const srcIcon = L.icon({
+    iconUrl: srcMarker,
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+  });
+
+  const destIcon = L.icon({
+    iconUrl: destMarker,
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+  });
 
   // -----------------------------
   // Crime icons (fixed size)
   // -----------------------------
   const crimeIcons = {
-    "anti-social-behaviour": L.icon({ iconUrl: AntiSocialBehaviour, iconSize: [50, 50], iconAnchor: [25, 50] }),
-    "drugs": L.icon({ iconUrl: Drugs, iconSize: [50, 50], iconAnchor: [25, 50] }),
-    "violent-crime": L.icon({ iconUrl: ViolentCrime, iconSize: [50, 50], iconAnchor: [25, 50] }),
-    "burglary": L.icon({ iconUrl: Burglary, iconSize: [50, 50], iconAnchor: [25, 50] }),
-    "theft": L.icon({ iconUrl: Theft, iconSize: [50, 50], iconAnchor: [25, 50] }),
-    "default": L.icon({ iconUrl: All, iconSize: [50, 50], iconAnchor: [25, 50] }),
+    "anti-social-behaviour": L.icon({
+      iconUrl: AntiSocialBehaviour,
+      iconSize: [50, 50],
+      iconAnchor: [25, 50],
+    }),
+    drugs: L.icon({
+      iconUrl: Drugs,
+      iconSize: [50, 50],
+      iconAnchor: [25, 50],
+    }),
+    "violent-crime": L.icon({
+      iconUrl: ViolentCrime,
+      iconSize: [50, 50],
+      iconAnchor: [25, 50],
+    }),
+    burglary: L.icon({
+      iconUrl: Burglary,
+      iconSize: [50, 50],
+      iconAnchor: [25, 50],
+    }),
+    theft: L.icon({
+      iconUrl: Theft,
+      iconSize: [50, 50],
+      iconAnchor: [25, 50],
+    }),
+    default: L.icon({
+      iconUrl: All,
+      iconSize: [50, 50],
+      iconAnchor: [25, 50],
+    }),
   };
 
   useEffect(() => {
@@ -52,126 +88,210 @@ const MapPage = () => {
     // -----------------------------
     if (!mapRef.current) {
       mapRef.current = L.map("map", { zoomControl: true });
+
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: "&copy; OpenStreetMap contributors",
       }).addTo(mapRef.current);
     }
 
-    if (routingRef.current) mapRef.current.removeControl(routingRef.current);
+    if (routingRef.current) {
+      mapRef.current.removeControl(routingRef.current);
+    }
 
     // -----------------------------
     // Routing control
     // -----------------------------
     routingRef.current = L.Routing.control({
-      waypoints: [L.latLng(srcCoords.lat, srcCoords.lng), L.latLng(destCoords.lat, destCoords.lng)],
+      waypoints: [
+        L.latLng(srcCoords.lat, srcCoords.lng),
+        L.latLng(destCoords.lat, destCoords.lng),
+      ],
       routeWhileDragging: false,
       lineOptions: { styles: [{ color: "green", weight: 6 }] },
       createMarker: (i, wp) => {
         const icon = i === 0 ? srcIcon : destIcon;
         const label = i === 0 ? "📍 Source" : "🏁 Destination";
-        return L.marker(wp.latLng, { icon }).addTo(mapRef.current).bindPopup(label).openPopup();
+        return L.marker(wp.latLng, { icon })
+          .addTo(mapRef.current)
+          .bindPopup(label)
+          .openPopup();
       },
       addWaypoints: false,
       draggableWaypoints: false,
     }).addTo(mapRef.current);
 
-    const bounds = L.latLngBounds([srcCoords.lat, srcCoords.lng], [destCoords.lat, destCoords.lng]);
+    const bounds = L.latLngBounds(
+      [srcCoords.lat, srcCoords.lng],
+      [destCoords.lat, destCoords.lng]
+    );
     mapRef.current.fitBounds(bounds, { padding: [50, 50] });
-
-    // -----------------------------
-    // Generate intermediate points
-    // -----------------------------
-    const generateIntermediatePoints = (src, dest, count) => {
-      const points = [];
-      for (let i = 1; i <= count; i++) {
-        const lat = src.lat + ((dest.lat - src.lat) * i) / (count + 1);
-        const lng = src.lng + ((dest.lng - src.lng) * i) / (count + 1);
-        points.push({ lat, lng });
-      }
-      return points;
-    };
-    const midPoints = generateIntermediatePoints(srcCoords, destCoords, 30);
 
     // -----------------------------
     // Draw crime shapes and icons
     // -----------------------------
-    const getScaleFactor = (zoom) => (zoom >= 15 ? 2 : zoom >= 13 ? 1.5 : 1);
+    const getScaleFactor = (zoom) =>
+      zoom >= 15 ? 2 : zoom >= 13 ? 1.5 : 1;
 
     const drawCrime = (type, lat, lng) => {
       const zoom = mapRef.current.getZoom();
       const scale = getScaleFactor(zoom);
 
       const colors = {
-        "drugs": { color: "#8B0000", fillColor: "#B22222" },
-        "burglary": { color: "#006400", fillColor: "#228B22" },
-        "theft": { color: "#00008B", fillColor: "#0000CD" },
+        drugs: { color: "#8B0000", fillColor: "#B22222" },
+        burglary: { color: "#006400", fillColor: "#228B22" },
+        theft: { color: "#00008B", fillColor: "#0000CD" },
         "violent-crime": { color: "#4B0082", fillColor: "#6A5ACD" },
-        "anti-social-behaviour": { color: "#FF8C00", fillColor: "#FF7F50" },
+        "anti-social-behaviour": {
+          color: "#FF8C00",
+          fillColor: "#FF7F50",
+        },
       };
 
       let shape;
+
       switch (type) {
         case "drugs":
-          shape = L.circle([lat, lng], { ...colors[type], fillOpacity: 0.5, radius: 2000 * scale }).addTo(mapRef.current);
+          shape = L.circle([lat, lng], {
+            ...colors[type],
+            fillOpacity: 0.5,
+            radius: 1200 * scale,
+          }).addTo(mapRef.current);
           break;
+
         case "burglary":
-          shape = L.polygon([
-            [lat + 0.018 * scale, lng],
-            [lat - 0.009 * scale, lng - 0.018 * scale],
-            [lat - 0.009 * scale, lng + 0.018 * scale],
-          ], { ...colors[type], fillOpacity: 0.6 }).addTo(mapRef.current);
-          break;
-        case "theft":
-          shape = L.circleMarker([lat, lng], { radius: 40 * scale, ...colors[type], fillOpacity: 0.7 }).addTo(mapRef.current);
-          break;
-        case "violent-crime":
-          shape = L.rectangle([[lat + 0.009 * scale, lng - 0.009 * scale], [lat - 0.009 * scale, lng + 0.009 * scale]], { ...colors[type], fillOpacity: 0.5 }).addTo(mapRef.current);
-          break;
         case "anti-social-behaviour":
-          shape = L.polygon([
-            [lat + 0.018 * scale, lng],
-            [lat - 0.009 * scale, lng - 0.018 * scale],
-            [lat - 0.009 * scale, lng + 0.018 * scale],
-          ], { ...colors[type], fillOpacity: 0.6 }).addTo(mapRef.current);
+          shape = L.polygon(
+            [
+              [lat + 0.012 * scale, lng],
+              [lat - 0.009 * scale, lng - 0.012 * scale],
+              [lat - 0.009 * scale, lng + 0.012 * scale],
+            ],
+            { ...colors[type], fillOpacity: 0.6 }
+          ).addTo(mapRef.current);
           break;
+
+        case "theft":
+          shape = L.circleMarker([lat, lng], {
+            radius: 40 * scale,
+            ...colors[type],
+            fillOpacity: 0.7,
+          }).addTo(mapRef.current);
+          break;
+
+        case "violent-crime":
+          shape = L.rectangle(
+            [
+              [lat + 0.009 * scale, lng - 0.009 * scale],
+              [lat - 0.009 * scale, lng + 0.009 * scale],
+            ],
+            { ...colors[type], fillOpacity: 0.5 }
+          ).addTo(mapRef.current);
+          break;
+
         default:
-          shape = L.marker([lat, lng], { icon: crimeIcons[type] || crimeIcons["default"] }).addTo(mapRef.current);
+          shape = null;
       }
 
-      // -----------------------------
-      // Fixed-size icon (does NOT scale)
-      // -----------------------------
-      const iconMarker = L.marker([lat, lng], { icon: crimeIcons[type] || crimeIcons["default"] }).addTo(mapRef.current);
+      const iconMarker = L.marker([lat, lng], {
+        icon: crimeIcons[type] || crimeIcons.default,
+      }).addTo(mapRef.current);
+
       iconMarker.bindPopup(`<b>${type.replace(/-/g, " ")}</b>`);
 
-      // Keep reference
-      crimeLayersRef.current.push({ type, lat, lng, shape, iconMarker });
-    };
-
-    const fetchCrimeData = async () => {
-      const dateStr = "2024-01";
-      const allCrimes = await Promise.all(
-        midPoints.map(async (p) => {
-          try {
-            const res = await fetch(`http://localhost:5000/api/crime?date=${dateStr}&lat=${p.lat}&lng=${p.lng}`);
-            if (!res.ok) return [];
-            const data = await res.json();
-            return data || [];
-          } catch (err) {
-            return [];
-          }
-        })
-      );
-
-      allCrimes.forEach((crimesAtPoint, index) => {
-        if (crimesAtPoint.length === 0) return;
-        const crime = crimesAtPoint[0];
-        drawCrime(crime.category || "default", midPoints[index].lat, midPoints[index].lng);
+      crimeLayersRef.current.push({
+        type,
+        lat,
+        lng,
+        shape,
+        iconMarker,
+        isUserReported: false, // generated crime
       });
     };
 
-    fetchCrimeData();
+
+    const generateIntermediatePoints = (src, dest, count) => {
+    const points = [];
+    for (let i = 1; i <= count; i++) {
+      const lat = src.lat + ((dest.lat - src.lat) * i) / (count + 1);
+      const lng = src.lng + ((dest.lng - src.lng) * i) / (count + 1);
+      points.push({ lat, lng });
+    }
+    return points;
+  };
+
+  const midPoints = generateIntermediatePoints(srcCoords, destCoords, 30);
+
+    // -----------------------------
+    // Draw GENERATED crimes on route (30 points)
+    // -----------------------------
+    const crimeTypes = [
+      "drugs",
+      "burglary",
+      "theft",
+      "violent-crime",
+      "anti-social-behaviour",
+    ];
+
+    midPoints.forEach((point, idx) => {
+      // Pick crime type cyclically so they are distributed
+      const type = crimeTypes[idx % crimeTypes.length];
+
+      // Draw the crime using existing logic
+      drawCrime(type, point.lat, point.lng);
+    });
+
+
+    // ==============================
+    // FETCH USER-REPORTED CRIMES FROM DB
+    // ==============================
+    const fetchReportedCrimes = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/crime/reported");
+        const crimes = await res.json();
+
+        for (const crime of crimes) {
+          const geoRes = await fetch(
+            `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
+              crime.location
+            )}&key=b79a86d628d04e69906d26e79a1f5d1a`
+          );
+
+          const geoData = await geoRes.json();
+          if (!geoData.results?.length) continue;
+
+          const { lat, lng } = geoData.results[0].geometry;
+
+          const marker = L.circleMarker([lat, lng], {
+            radius: 20,
+            color: "#e11d48",
+            fillColor: "#e11d48",
+            fillOpacity: 0.85,
+          }).addTo(mapRef.current);
+
+          marker.bindPopup(`
+            <b>Reported Crime</b><br/>
+            <b>Name:</b> ${crime.name}<br/>
+            <b>Type:</b> ${crime.type}<br/>
+            <b>Intensity:</b> ${crime.intensity}<br/>
+            <b>Details:</b> ${crime.details}
+          `);
+
+          crimeLayersRef.current.push({
+            type: crime.type,
+            lat,
+            lng,
+            shape: marker,
+            iconMarker: null,
+            isUserReported: true, // 🔥 critical flag
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load reported crimes", err);
+      }
+    };
+
+    fetchReportedCrimes();
 
     // -----------------------------
     // Update shapes on zoom (icons stay intact)
@@ -179,24 +299,38 @@ const MapPage = () => {
     mapRef.current.on("zoomend", () => {
       const currentLayers = [...crimeLayersRef.current];
       crimeLayersRef.current = [];
+
       currentLayers.forEach((item) => {
-        mapRef.current.removeLayer(item.shape);
-        mapRef.current.removeLayer(item.iconMarker); // remove old icon
+        // User-reported crimes should NOT be redrawn
+        if (item.isUserReported) {
+          crimeLayersRef.current.push(item);
+          return;
+        }
+
+        if (item.shape) mapRef.current.removeLayer(item.shape);
+        if (item.iconMarker) mapRef.current.removeLayer(item.iconMarker);
+
         drawCrime(item.type, item.lat, item.lng);
       });
     });
 
-    // Cleanup
     return () => {
       if (routingRef.current) mapRef.current.removeControl(routingRef.current);
-      if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
-  }, [srcCoords, destCoords, navigate, srcIcon, destIcon]);
+  }, [srcCoords, destCoords, navigate]);
 
   return (
     <div className="flex flex-col h-screen w-screen bg-gradient-to-b from-indigo-50 to-indigo-100">
-      <h2 className="text-2xl font-semibold text-indigo-600 text-center py-4">Route Map</h2>
-      <div id="map" className="flex-1 shadow-md rounded-t-xl" style={{ width: "100%" }}></div>
+      <h2 className="text-2xl font-semibold text-indigo-600 text-center py-4">
+        Route Map
+      </h2>
+
+      <div id="map" className="flex-1 shadow-md rounded-t-xl" />
+
       <div className="flex justify-center py-4">
         <button
           onClick={() => navigate("/")}

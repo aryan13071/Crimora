@@ -7,14 +7,20 @@ const authMiddleware = (req, res, next) => {
     return res.status(401).json({ msg: "No token" });
   }
 
-  const token = authHeader.split(" ")[1]; // FIX 1 remove bearer 
+  // ✅ SAFE token extraction
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.split(" ")[1]
+    : authHeader;
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.id }; // FIX 2
+
+    // keep structure consistent
+    req.user = { id: decoded.id };
+
     next();
   } catch (err) {
-    return res.status(401).json({ msg: "Invalid token" }); // FIX 3
+    return res.status(401).json({ msg: "Invalid token" });
   }
 };
 

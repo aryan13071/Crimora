@@ -12,10 +12,15 @@ const userSchema = new mongoose.Schema(
     },
     googleId: {
       type: String
+    },
+    profilePic: {
+      type: String,
+      default: "",
     }
   },
   { timestamps: true }
 );
+
 
 export default mongoose.model("User", userSchema);
 // 🔴 SORRY: CHANGE MADE HERE (module.exports → export default)

@@ -13,7 +13,7 @@ import connectDB from "./config/db.js";           // 🔴 ADDED
 import authRoutes from "./routes/authRoutes.js";  // 🔴 ADDED
 import "./config/passport.js";  // 🔴 ADDED (Google OAuth)
 import crimeRoutes from "./routes/crimeRoutes.js";
-
+import userRoutes from "./routes/userRoutes.js";
 
 
 
@@ -64,6 +64,7 @@ app.get("/", (req, res) => {
 // ===================== AUTH ROUTES ===================== // 🔴 ADDED
 app.use("/api/auth", authRoutes);
 app.use("/api/crime", crimeRoutes);
+app.use("/api/user", userRoutes);
 
 
 // 🔴 ADDED: Google OAuth start

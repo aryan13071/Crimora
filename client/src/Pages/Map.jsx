@@ -211,16 +211,16 @@ const MapPage = () => {
 
 
     const generateIntermediatePoints = (src, dest, count) => {
-    const points = [];
-    for (let i = 1; i <= count; i++) {
-      const lat = src.lat + ((dest.lat - src.lat) * i) / (count + 1);
-      const lng = src.lng + ((dest.lng - src.lng) * i) / (count + 1);
-      points.push({ lat, lng });
-    }
-    return points;
-  };
+      const points = [];
+      for (let i = 1; i <= count; i++) {
+        const lat = src.lat + ((dest.lat - src.lat) * i) / (count + 1);
+        const lng = src.lng + ((dest.lng - src.lng) * i) / (count + 1);
+        points.push({ lat, lng });
+      }
+      return points;
+    };
 
-  const midPoints = generateIntermediatePoints(srcCoords, destCoords, 30);
+    const midPoints = generateIntermediatePoints(srcCoords, destCoords, 30);
 
     // -----------------------------
     // Draw GENERATED crimes on route (30 points)
@@ -270,12 +270,48 @@ const MapPage = () => {
           }).addTo(mapRef.current);
 
           marker.bindPopup(`
-            <b>Reported Crime</b><br/>
-            <b>Name:</b> ${crime.name}<br/>
-            <b>Type:</b> ${crime.type}<br/>
-            <b>Intensity:</b> ${crime.intensity}<br/>
-            <b>Details:</b> ${crime.details}
+            <div style="min-width:200px">
+              <b>Reported Crime</b><br/>
+              <b>Name:</b> ${crime.name}<br/>
+              <b>Type:</b> ${crime.type}<br/>
+              <b>Intensity:</b> ${crime.intensity}<br/>
+              <b>Details:</b> ${crime.details}<br/><br/>
+
+              <!-- 🔥 CHANGE MADE HERE: Chat button added -->
+              <button 
+                id="chat-${crime._id}" 
+                style="
+                  padding:6px 10px;
+                  background:#4f46e5;
+                  color:white;
+                  border:none;
+                  border-radius:6px;
+                  cursor:pointer;
+                  width:100%;
+                ">
+                💬 Chat with Reporter
+              </button>
+            </div>
           `);
+
+          // 🔥 CHANGE MADE HERE: attach click handler after popup opens
+          marker.on("popupopen", () => {
+            const btn = document.getElementById(`chat-${crime._id}`);
+
+            if (btn) {
+              btn.onclick = () => {
+                navigate("/chat", {
+                  state: {
+                    crimeId: crime._id,
+                    receiverId: crime.user._id,
+                    receiverEmail: crime.user.email,
+                  },
+                });
+              };
+            }
+          });
+
+
 
           crimeLayersRef.current.push({
             type: crime.type,

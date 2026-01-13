@@ -14,9 +14,11 @@ import Track from "./Track";
 import Analyse from "./Analyse";
 import Contribute from "./Contribute";
 import Report from "./Report";
-import MapPage from "./Map"
+import MapPage from "./Map";
 import SignUp from "./SignUp";
-import LogIn from "./LogIn"
+import LogIn from "./LogIn";
+import Chat from "./Chat";
+
 function Dashboard(){
 
     return (
@@ -34,6 +36,7 @@ function Dashboard(){
             <Route path="/map" element ={<MapPage/>} />
             <Route path="/signUp" element={<SignUp/>}/>
             <Route path="/logIn" element={<LogIn/>}/>
+            <Route path="/chat" element={<Chat/>}/>
         </Routes>
         
         </>

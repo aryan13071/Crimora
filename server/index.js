@@ -20,9 +20,16 @@ import userRoutes from "./routes/userRoutes.js";
 
 
 
+import http from "http";
+import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
+import Message from "./models/Message.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+const server = http.createServer(app);
+
 
 // 🔴 ADDED: MongoDB connection
 connectDB();
@@ -53,6 +60,46 @@ app.use(
 
 // 🔴 ADDED: Passport init
 app.use(passport.initialize());
+
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    credentials: true,
+  },
+});
+
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (!token) return next(new Error("No token"));
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.id;
+    next();
+  } catch {
+    next(new Error("Invalid token"));
+  }
+});
+
+io.on("connection", (socket) => {
+  console.log("✅ Socket connected:", socket.userId);
+
+  socket.on("join_room", (crimeId) => {
+    socket.join(crimeId);
+  });
+
+  socket.on("send_message", async ({ receiver, crimeId, text }) => {
+    const msg = await Message.create({
+      sender: socket.userId,
+      receiver,
+      crime: crimeId,
+      text,
+    });
+
+    io.to(crimeId).emit("receive_message", msg);
+  });
+});
 
 
 
@@ -135,6 +182,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Crimora backend running on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`🚀 Crimora backend + Socket.IO running on port ${PORT}`);
 });
+

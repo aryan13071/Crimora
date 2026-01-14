@@ -20,12 +20,18 @@ router.get("/reported", getAllCrimes);
 
 router.get("/:id", async (req, res) => {
   try {
-    const crime = await Crime.findById(req.params.id);
-    console.log("Crime details at the id ?? :", crime);
+    const crime = await Crime.findById(req.params.id).populate(
+      "user",
+      "email profilePic"
+    );
+
+    if (!crime) {
+      return res.status(404).json({ msg: "Crime not found" });
+    }
+
     res.json(crime);
-    
   } catch (err) {
-    res.status(500).json({ msg: "Crime not found" });
+    res.status(500).json({ msg: "Server error" });
   }
 });
 

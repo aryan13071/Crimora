@@ -3,6 +3,10 @@ import { io } from "socket.io-client";
 import { useParams } from "react-router-dom";
 
 
+
+
+
+
 // connect to backend socket server
 const socket = io("http://localhost:5000", {
       auth: {
@@ -22,20 +26,37 @@ function Chat() {
   const [crime, setCrime] = useState(null);
 
   useEffect(() => {
-    if (!crime) return;
+  if (!crimeId) return;
 
-    socket.emit("join_room", crime._id);
+  socket.emit("join_room", crimeId);
+  console.log("Joined room:", crimeId);
 
-    return () => {
-      socket.emit("leave_room", crime._id);
-    };
-  }, [crime]);
+  return () => {
+    socket.off("receive_message");
+  };
+}, [crimeId]);
+
+
+  // useEffect(() => {
+  //   if (!crime) return;
+
+  //   socket.emit("join_room", crime._id);
+
+  //   return () => {
+  //     socket.emit("leave_room", crime._id);
+  //   };
+  // }, [crime]);
 
 
   useEffect(() => {
   fetch(`http://localhost:5000/api/crime/${crimeId}`)
-    .then(res => res.json())
-    .then(data => setCrime(data));
+  .then(res => {
+    if (!res.ok) throw new Error("API failed");
+    return res.json();
+  })
+  .then(data => setCrime(data))
+  .catch(err => console.error(err));
+
   }, [crimeId]);
 
   console.log(`crime details of particular id is:`, crime);
@@ -60,7 +81,9 @@ function Chat() {
 
   // send message
   const sendMessage = () => {
-    if (message.trim() === "") return;
+
+    if (!message.trim()) return;
+    
 
     // yaha automation lagana hoga !!! NOTE IT !!! 
 

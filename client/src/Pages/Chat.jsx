@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
+import { useParams } from "react-router-dom";
+
 
 // connect to backend socket server
 const socket = io("http://localhost:5000", {
@@ -8,9 +10,42 @@ const socket = io("http://localhost:5000", {
       },
 });
 
+console.log(`What is the Scoket : ->  ?? ${socket}`);
+
+
+
 function Chat() {
+  const { crimeId } = useParams();
+  console.log(`Dekho Chat.jsx mai crime id yeh hui ${crimeId}`);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [crime, setCrime] = useState(null);
+
+  useEffect(() => {
+    if (!crime) return;
+
+    socket.emit("join_room", crime._id);
+
+    return () => {
+      socket.emit("leave_room", crime._id);
+    };
+  }, [crime]);
+
+
+  useEffect(() => {
+  fetch(`http://localhost:5000/api/crime/${crimeId}`)
+    .then(res => res.json())
+    .then(data => setCrime(data));
+  }, [crimeId]);
+
+  console.log(`crime details of particular id is:`, crime);
+  useEffect(() => {
+  fetch(`/api/messages/${crimeId}`)
+    .then(res => res.json())
+    .then(setMessages);
+  }, [crimeId]);
+
+
 
   // listen for incoming messages
   useEffect(() => {
@@ -30,10 +65,11 @@ function Chat() {
     // yaha automation lagana hoga !!! NOTE IT !!! 
 
     socket.emit("send_message", {
-      receiver: crime.user,        // 👈 USER WHO REPORTED THE CRIME
-      crimeId: crime._id,          // 👈 CRIME ID
+      room: crime._id,
       text: message,
     });
+    // return () => socket.emit("leave_room", crime._id);
+
 
 
     setMessages((prev) => [

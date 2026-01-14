@@ -37,6 +37,8 @@ function Dashboard(){
             <Route path="/signUp" element={<SignUp/>}/>
             <Route path="/logIn" element={<LogIn/>}/>
             <Route path="/chat" element={<Chat/>}/>
+            <Route path="/chat/:crimeId" element={<Chat />} />
+
         </Routes>
         
         </>

@@ -20,6 +20,8 @@ import userRoutes from "./routes/userRoutes.js";
 
 
 
+
+
 import http from "http";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
@@ -72,6 +74,7 @@ const io = new Server(server, {
 io.use((socket, next) => {
   const token = socket.handshake.auth?.token;
   if (!token) return next(new Error("No token"));
+  console.log(` AAA>>...>>>AAA see the token ${token}`);
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -82,24 +85,42 @@ io.use((socket, next) => {
   }
 });
 
+// io.on("connection", (socket) => {
+//   console.log("✅ Socket connected:", socket.userId);
+
+//   socket.on("join_room", (crimeId) => {
+//     socket.join(crimeId);
+//   });
+
+//   socket.on("send_message", async ({ receiver, crimeId, text }) => {
+//     const msg = await Message.create({
+//       sender: socket.userId,
+//       receiver,
+//       crime: crimeId,
+//       text,
+//     });
+
+//     io.to(crimeId).emit("receive_message", msg);
+//   });
+// });
+
+
 io.on("connection", (socket) => {
   console.log("✅ Socket connected:", socket.userId);
 
-  socket.on("join_room", (crimeId) => {
-    socket.join(crimeId);
+  socket.on("join_room", (roomId) => {
+    socket.join(roomId);
   });
 
-  socket.on("send_message", async ({ receiver, crimeId, text }) => {
-    const msg = await Message.create({
-      sender: socket.userId,
-      receiver,
-      crime: crimeId,
+  socket.on("send_message", ({ room, text }) => {
+    io.to(room).emit("receive_message", {
       text,
+      sender: socket.userId,
     });
-
-    io.to(crimeId).emit("receive_message", msg);
   });
 });
+
+
 
 
 
@@ -112,6 +133,12 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/crime", crimeRoutes);
 app.use("/api/user", userRoutes);
+app.get("/api/messages/:crimeId", async (req, res) => {
+  const msgs = await Message.find({ crime: req.params.crimeId })
+    .sort({ createdAt: 1 });
+  res.json(msgs);
+});
+
 
 
 // 🔴 ADDED: Google OAuth start

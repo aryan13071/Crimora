@@ -298,9 +298,13 @@ const MapPage = () => {
           marker.on("popupopen", () => {
             const btn = document.getElementById(`chat-${crime._id}`);
 
+            console.log(`What is the Crime id ${crime._id}`);
+            console.log(`What is the Crime User id ${crime.user._id}`);
+            console.log(`What is the Crime User Email id ${crime.user.email}`);
+
             if (btn) {
               btn.onclick = () => {
-                navigate("/chat", {
+                navigate(`/chat/${crime._id}`, {    // yaha crim._id add kiya h phele sirf chat tha 
                   state: {
                     crimeId: crime._id,
                     receiverId: crime.user._id,

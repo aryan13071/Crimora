@@ -16,6 +16,8 @@ import crimeRoutes from "./routes/crimeRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
 
+import chatRt from "./routes/chat.rt.js";
+
 
 
 
@@ -138,6 +140,8 @@ app.get("/api/messages/:crimeId", async (req, res) => {
     .sort({ createdAt: 1 });
   res.json(msgs);
 });
+
+app.use("/api/chat", chatRt);
 
 
 

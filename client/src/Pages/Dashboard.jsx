@@ -18,6 +18,7 @@ import MapPage from "./Map";
 import SignUp from "./SignUp";
 import LogIn from "./LogIn";
 import Chat from "./Chat";
+import ChatBotBtn from "../Components/ChatBotBtn.jsx";
 
 function Dashboard(){
 
@@ -40,6 +41,8 @@ function Dashboard(){
             <Route path="/chat/:crimeId" element={<Chat />} />
 
         </Routes>
+
+        <ChatBotBtn />
         
         </>
     );
